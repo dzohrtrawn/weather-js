@@ -1,7 +1,127 @@
 import './general';
 
-//http://api.openweathermap.org/data/2.5/forecast?zip=97405&units=imperial&appid=c59493e7a8643f49446baf0d5ed9d646
+//http://api.openweathermap.org/data/2.5/forecast?zip=97401&units=imperial&appid=94238d1b45503c3a3f5a9d8337f77db5
+class Weather
+{
+  constructor()
+  {
+    this.state = {
+      zipcode: "",
+      city: {},
+      forecast: [],
+      simpleForecast: [], 
+      selectedDate: null
+    };
+    this.googleApiKey = "AIzaSyC1HTCZ6mUEKFuuLHPLdE1zM2_Q7j0vxhk";
+    this.googleMapsUrl = "https://maps.googleapis.com/maps/api/timezone/json?location=";
+    this.url = "http://api.openweathermap.org/data/2.5/forecast?zip=";
+    this.apikey = "&units=imperial&appid=94238d1b45503c3a3f5a9d8337f77db5";
+    this.$form = document.getElementById("zipForm");
+    this.$zipcode = document.getElementById("zipcode");
+    this.$weatherList = document.getElementById("weatherList");
+    this.$currentDay = document.getElementById("currentDay");
+    this.onFormSubmit = this.onFormSubmit.bind(this);
+    this.$form.onsubmit = this.onFormSubmit;
+  }
 
+  onFormSubmit()
+  {
+    event.preventDefault();
+    this.state.zipcode = this.$zipcode.value;
+    fetch(`${this.url}${this.state.zipcode}${this.apikey}`)
+    .then(response => response.json())
+      .then(data => { 
+          this.state.city = data.city;
+          this.state.forecast = data.list;
+          this.state.selectedDate = null;
+          fetch(`${this.googleMapsUrl}${this.state.city.coord.lat},${this.state.city.coord.lon}&timestamp=${this.state.forecast[0].dt}&key=${this.googleApiKey}`)
+              .then(response => response.json())
+              .then(tzdata => {
+                  console.log(tzdata);
+                  this.state.timezoneOffset =  (tzdata.rawOffset + tzdata.dstOffset) / (60 * 60);
+                  this.state.simpleForecast = this.parseForecast(this.state.forecast, this.state.timezoneOffset);
+                  this.$zipcode.value = "";
+                  this.renderWeatherList(this.state.simpleForecast);        
+                  // this is where you'll call the method that writes the data to the page
+              })
+              .catch(tzError => {
+                  alert('There was a problem getting timezone info!')
+              });
+      })
+      .catch(error => {
+          alert('There was a problem getting info!'); 
+      });
+
+  }
+
+  renderWeatherList(forecast)
+  {
+    console.log(forecast);
+  }
+
+  getIndexOfMidnight(firstDate, timezoneOffset) {
+    let dt = firstDate * 1000;
+    let date = new Date(dt);
+    let utcHours = date.getUTCHours();
+    let localHours = utcHours + timezoneOffset;
+    let firstMidnightIndex = (localHours > 2 ) ? 
+        Math.round((24 - localHours)/3) : 
+        Math.abs(Math.round(localHours / 3));
+    return firstMidnightIndex;
+  }
+
+  findMinTemp(forecast, indexOfMidnight) {
+    let min = forecast[indexOfMidnight].main.temp_min;
+    for (let i = indexOfMidnight + 1; i < indexOfMidnight + 8; i++)
+      if (forecast[i].main.temp_min < min)
+        min = forecast[i].main.temp_min;
+    return min;
+  }
+
+  findMaxTemp(forecast, indexOfMidnight) {
+    let max = forecast[indexOfMidnight].main.temp_max;
+    for (let i = indexOfMidnight + 1; i < indexOfMidnight + 8; i++)
+      if (forecast[i].main.temp_max > max)
+        max = forecast[i].main.temp_max;
+    return max;
+  }
+
+  parseForecast(forecast, timezoneOffset) {
+    let simpleForecast = new Array();
+    const MIDNIGHT = this.getIndexOfMidnight(forecast[0].dt, timezoneOffset);
+    const NOON = 4;
+    const SIXAM = 2;
+    const SIXPM = 6;
+    const NINEPM = 7;
+    const MORNING = SIXAM;
+    const DAY = NOON;
+    const EVENING = SIXPM;
+    const NIGHT = NINEPM;
+    const PERDAY = 8;
+    const DAYS = 4;
+    for (let i = MIDNIGHT; i < forecast.length - NINEPM; i+=PERDAY) {
+      let oneDay = new Object();
+      oneDay.dt = forecast[i + NOON].dt;
+      oneDay.temp = forecast[i + NOON].main.temp;
+      oneDay.minTemp = this.findMinTemp(forecast, i);
+      oneDay.maxTemp = this.findMaxTemp(forecast, i);
+      oneDay.morningTemp = forecast[i + MORNING].main.temp;
+      oneDay.dayTemp = forecast[i + DAY].main.temp;
+      oneDay.eveningTemp = forecast[i + EVENING].main.temp;
+      oneDay.nightTemp = forecast[i + NIGHT].main.temp;
+      oneDay.description = forecast[i + NOON].weather[0].description;
+      oneDay.icon = forecast[i].weather[0].icon;
+      oneDay.pressure = forecast[i].main.pressure;
+      oneDay.wind = forecast[i].wind.speed;
+      oneDay.humidity = forecast[i].main.humidity;
+      simpleForecast.push(oneDay);
+    }
+    return simpleForecast;
+  }
+}
+
+let weatherapp;
+window.onload = () => {weatherapp = new Weather();};
 /* Create a class called Weather
 - Part 1 - Retrieve the weather information when the user clicks the buttobn
   - Create the constructor
@@ -14,7 +134,7 @@ import './general';
           selectedDate: null
         };
         this.url = "http://api.openweathermap.org/data/2.5/forecast?zip=";
-        this.apikey = "&units=imperial&appid=c59493e7a8643f49446baf0d5ed9d646";
+        this.apikey = "&units=imperial&appid=94238d1b45503c3a3f5a9d8337f77db5";
     - initialize instance variables for UI elements
         the form
         the zipcode input element
