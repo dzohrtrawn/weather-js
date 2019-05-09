@@ -12,7 +12,7 @@ class Weather
       simpleForecast: [], 
       selectedDate: null
     };
-    this.googleApiKey = "AIzaSyC1HTCZ6mUEKFuuLHPLdE1zM2_Q7j0vxhk";
+    this.googleApiKey = "AIzaSyDlxsuByKXBhWoW_O75b1rX6CP8NgGsius";
     this.googleMapsUrl = "https://maps.googleapis.com/maps/api/timezone/json?location=";
     this.url = "http://api.openweathermap.org/data/2.5/forecast?zip=";
     this.apikey = "&units=imperial&appid=94238d1b45503c3a3f5a9d8337f77db5";
