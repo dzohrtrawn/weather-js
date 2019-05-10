@@ -45,8 +45,7 @@ class Weather
                   this.state.timezoneOffset =  (tzdata.rawOffset + tzdata.dstOffset) / (60 * 60);
                   this.state.simpleForecast = this.parseForecast(this.state.forecast, this.state.timezoneOffset);
                   this.$zipcode.value = "";
-                  this.renderWeatherList(this.state.simpleForecast);        
-                  // this is where you'll call the method that writes the data to the page
+                  this.renderWeatherList(this.state.simpleForecast);
               })
               .catch(tzError => {
                   alert('There was a problem getting timezone info!')
