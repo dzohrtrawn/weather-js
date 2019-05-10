@@ -22,6 +22,8 @@ class Weather
     this.$currentDay = document.getElementById("currentDay");
     this.onFormSubmit = this.onFormSubmit.bind(this);
     this.$form.onsubmit = this.onFormSubmit;
+    this.months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    this.weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
   }
 
   onFormSubmit()
@@ -34,7 +36,9 @@ class Weather
           this.state.city = data.city;
           this.state.forecast = data.list;
           this.state.selectedDate = null;
-          fetch(`${this.googleMapsUrl}${this.state.city.coord.lat},${this.state.city.coord.lon}&timestamp=${this.state.forecast[0].dt}&key=${this.googleApiKey}`)
+          fetch(`${this.googleMapsUrl}${this.state.city.coord.lat},${this.state.city.coord.lon}
+          &timestamp=${this.state.forecast[0].dt}
+          &key=${this.googleApiKey}`)
               .then(response => response.json())
               .then(tzdata => {
                   console.log(tzdata);
@@ -51,12 +55,52 @@ class Weather
       .catch(error => {
           alert('There was a problem getting info!'); 
       });
-
+      this.clearCurrentDay();
   }
 
   renderWeatherList(forecast)
   {
-    console.log(forecast);
+    const itemsHTML = forecast.map((forecastDay, index) => this.renderWeatherListItem(forecastDay, index)).join('');
+    this.$weatherList.innerHTML = `<div class ="weather-list flex-parent">${itemsHTML}</div>`
+    let days = document.querySelectorAll(".weather-list-item")
+    for (let i = 0; i <  days.length; i++)
+      days[i].onclick = this.renderCurrentDay.bind(this, i);
+  }
+
+  renderWeatherListItem(forecastDay, index)
+  {
+    const date = new Date(forecastDay.dt * 1000)
+    return `<div class="weather-list-item" data-index="${index}">
+    <h2> ${date.getMonth() + 1}  / ${date.getDate()} </h2>
+    <h3> ${this.weekdays[date.getDay()]}</h3>
+    <h3> ${forecastDay.minTemp} &deg;F &#124; ${forecastDay.maxTemp} &deg;F</h3>
+  </div>`
+   }
+
+  clearCurrentDay()
+  {
+    this.$currentDay.innerHTML = "";
+  }
+
+  renderCurrentDay(index)
+  {
+    let weekday = new Date(this.state.simpleForecast[index].dt * 1000).getDay();
+    this.$currentDay.innerHTML = `<div class="current-day">
+    <h1 class="day-header">${this.weekdays[weekday]} in ${this.state.city.name}</h1>
+      <div class="weather">
+            <p><img src='http://openweathermap.org/img/w/${this.state.simpleForecast[index].icon}.png' alt='${this.state.simpleForecast[index].description}'/>
+            ${this.state.simpleForecast[index].description}
+          </p>
+      </div>
+      <div class="details flex-parent">
+        <div class="temperature-breakdown">
+              <p>Morning Temperature: ${this.state.simpleForecast[index].morningTemp} &deg;F</p>
+              <p>Day Temperature: ${this.state.simpleForecast[index].dayTemp} &deg;F</p>
+              <p>Evening Temperature: ${this.state.simpleForecast[index].eveningTemp} &deg;F</p>
+              <p>Night Temperature: ${this.state.simpleForecast[index].nightTemp} &deg;F</p>
+        </div>
+      </div>
+  </div>`;
   }
 
   getIndexOfMidnight(firstDate, timezoneOffset) {
