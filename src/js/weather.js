@@ -70,7 +70,7 @@ class Weather
   {
     const date = new Date(forecastDay.dt * 1000)
     return `<div class="weather-list-item" data-index="${index}">
-    <h2> ${date.getMonth() + 1}  / ${date.getDate()} </h2>
+    <h2> ${date.getMonth() + 1} / ${date.getDate()} </h2>
     <h3> ${this.weekdays[date.getDay()]}</h3>
     <h3> ${forecastDay.minTemp} &deg;F &#124; ${forecastDay.maxTemp} &deg;F</h3>
   </div>`
@@ -153,12 +153,13 @@ class Weather
       oneDay.eveningTemp = forecast[i + EVENING].main.temp;
       oneDay.nightTemp = forecast[i + NIGHT].main.temp;
       oneDay.description = forecast[i + NOON].weather[0].description;
-      oneDay.icon = forecast[i].weather[0].icon;
+      oneDay.icon = forecast[i + NOON].weather[0].icon;
       oneDay.pressure = forecast[i].main.pressure;
       oneDay.wind = forecast[i].wind.speed;
       oneDay.humidity = forecast[i].main.humidity;
       simpleForecast.push(oneDay);
     }
+    console.log(simpleForecast);
     return simpleForecast;
   }
 }
