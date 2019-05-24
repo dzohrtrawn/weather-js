@@ -32,7 +32,8 @@ class Weather
     this.state.zipcode = this.$zipcode.value;
     fetch(`${this.url}${this.state.zipcode}${this.apikey}`)
     .then(response => response.json())
-      .then(data => { 
+      .then(data => {
+          console.log(data); 
           this.state.city = data.city;
           this.state.forecast = data.list;
           this.state.selectedDate = null;
